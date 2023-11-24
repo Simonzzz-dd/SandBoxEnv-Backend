@@ -24,7 +24,7 @@ app.use((req, res, next) => {
 
 
 var corsOptions = {
-  origin: 'http://127.0.0.1:3000',
+  origin: process.env.ORIGIN,
   optionsSuccessStatus: 200 // some legacy browsers (IE11, various SmartTVs) choke on 204
 }
 
