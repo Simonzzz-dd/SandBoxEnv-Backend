@@ -4,8 +4,8 @@ const VoucherReqModel = require("../../models/Result/SIMO_ATM_TransferVoucherMod
 // create new workout
 const PostAtmTransferVRequest = async (req, res) => {
   const xmlRequest = req.body;
-  console.log(xmlRequest.toString());
   xml2js.parseString(xmlRequest, async (err, data) => {
+    console.log(data)
     if (err) {
       res
         .status(400)

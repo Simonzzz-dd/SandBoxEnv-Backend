@@ -1,4 +1,6 @@
 require("dotenv").config();
+const https = require("https")
+const fs = require("fs")
 const dbConnections = require("./dataBaseConnections");
 const express = require("express");
 const mongoose = require("mongoose");
@@ -8,14 +10,19 @@ const bodyParser = require("body-parser");
 const webhookRouter = require("./webhook/generalRouter");
 var cors = require('cors');
 const generalAppRouter = require("./general/generalAppRouter");
+const { dirname } = require("path");
+const path = require("path");
 
 // express app
 const app = express();
 
+app.get("/", (req, res ) => {
+  res.send('Connected')
+})
 // middleware
 app.use("/api/*", express.json());
 app.use("/app/*", bodyParser.json())
-app.use("/webhook/*", bodyParser.text({ type: "application/xml" }));
+app.use("/webhook/*", bodyParser.text({ type: "text/xml" }));
 
 app.use((req, res, next) => {
   console.log(req.path, req.method);
@@ -55,8 +62,14 @@ Promise.all(connectionPromises)
     console.log("All database connections established");
 
     // Now that all connections are established, you can start your server
-    app.listen(process.env.PORT, () => {
-      console.log("Server is listening on port", process.env.PORT);
+    const sslServer = https.createServer({
+      key: fs.readFileSync(path.join(__dirname, 'Cert', 'Key.pem')),
+      cert: fs.readFileSync(path.join(__dirname, 'Cert', 'cert.pem'))
+    }, app);
+    const PORT = process.env.PORT || 443;
+
+    sslServer.listen(PORT, () => {
+      console.log("HTTPS Server is listening on port", PORT);
     });
   })
   .catch((error) => {
