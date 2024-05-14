@@ -5,9 +5,15 @@ require("dotenv").config();
 const axios = require("axios");
 const xml2js = require("xml2js");
 const uuidv4  = require('uuid') ;
+const https = require('https');
+const encrypt = require("../../functions/encryptPass")
 
 // create new AtmTransferVRequest
 const PostAtmTransferVRequest = async (req, res) => {
+  const agent = new https.Agent({  
+    rejectUnauthorized: false
+  });
+
   let { password, msisdn, originator_id } = req.body;
   if (!originator_id) {
     originator_id = uuidv4.v4()
@@ -32,11 +38,18 @@ const PostAtmTransferVRequest = async (req, res) => {
     });
   }
 
+  // encrypt pass 
+  const encPass = await encrypt.encryptPass(password)
+  password = encPass
+  
+
   const body = XMLBody.SIMO_ATM_TransferVoucher(
     password,
     msisdn,
     originator_id
   );
+
+  
 
   try {
     const voucherReq = await SIMO_ATM_Voucher.create({
@@ -48,28 +61,32 @@ const PostAtmTransferVRequest = async (req, res) => {
       msisdn,
     });
 
+    console.log("passed")
+
     const url = process.env.G2URL;
+    
+    
 
     // Set the headers for the request
     const headers = {
-      "Content-Type": "application/xml",
+      "Content-Type": "text/xml",
     };
-
+    
     // Send the XML request using Axios
     axios
-      .post(url, body, { headers })
+      .post(url, body, { headers, httpsAgent: agent  })
       .then((xml_) => {
         // Save Response
         xml2js.parseString(xml_.data, async (err, result) => {
           if (err) {
-            
+            console.log(err)
             return res
               .status(400)
               .json({ error: "could'nt parse the response", status: 400 });
           } else {
 
 
-
+          
             const conversationId =
               result["soapenv:Envelope"]["soapenv:Body"][0]["api:Response"][0][
                 "res:Header"
@@ -100,7 +117,7 @@ const PostAtmTransferVRequest = async (req, res) => {
               ][0]["res:ResponseDesc"][0];
 
 
-
+            
 
             try {
               await SIMO_ATM_VoucherRes.create({

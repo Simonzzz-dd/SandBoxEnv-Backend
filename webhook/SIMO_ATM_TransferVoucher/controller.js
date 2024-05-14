@@ -52,7 +52,6 @@ const PostAtmTransferVRequest = async (req, res) => {
 
       return res.status(200).json({
         response: {
-    
           originator_id: originatorId,
           conversation_id: conversationId,
           result_desc: resultDesc,

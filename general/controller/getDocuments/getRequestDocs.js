@@ -9,7 +9,7 @@ const getRequestCollectionDocuments = async (req, res) => {
         if (err) {
           console.error(err);
         } else {
-          console.log(documents);
+        
           return res.status(200).json({
             status: 200,
             response: "request was succesfully executed😄",
